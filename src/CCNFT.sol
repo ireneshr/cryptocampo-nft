@@ -105,11 +105,11 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
         totalValue += value * amount; // Incremento del valor total acumulado por el valor de los NFTs comprados.
 
-        for () { // Bucle desde 1 hasta amount (inclusive) para mintear la cantidad especificada de NFTs.
-            values[] = value; // Asignar el valor del NFT al tokenId actual "current()" en el mapeo values.
-            _safeMint(); // Minteo de NFT y asignación al msg.sender.
-            emit Buy(); // Evento Buy con el comprador, el tokenId y el valor del NFT.
-                                    ; // Incremento del contador tokenIdTracker (NFT deben tener un tokenId único).        
+        for (uint256 i = 0; i < amount; i++) { // Bucle desde 1 hasta amount (inclusive) para mintear la cantidad especificada de NFTs.
+            values[tokenIdTracker.current()] = value; // Asignar el valor del NFT al tokenId actual "current()" en el mapeo values.
+            _safeMint(msg.sender, tokenIdTracker.current()); // Minteo de NFT y asignación al msg.sender.
+            emit Buy(msg.sender, tokenIdTracker.current(), value); // Evento Buy con el comprador, el tokenId y el valor del NFT.
+            tokenIdTracker.increment(); // Incremento del contador tokenIdTracker (NFT deben tener un tokenId único).
         }
 
 // Transfencia de fondos desde el comprador (_msgSender()) al recolector de fondos (fundsCollector) por el valor total de los NFTs comprados. 
@@ -261,7 +261,8 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
         maxValueToRaise = _maxValueToRaise; // Valor proporcionado a la variable maxValueToRaise.
     }
     
-// Función para agregar un valor válido para NFTs.   
+// Función para agregar un valor válido para NFTs.
+// ejemplo: podría agregar que 100, 500 y 1000 son valores válidos para los NFTs.   
     function addValidValues(uint256 value) external onlyOwner { // Parámetro, valor que se quiere agregar como válido.
         validValues[value] = true; // Valor como válido en el mapeo validValues.
     }
@@ -354,4 +355,3 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
    
 }
-
