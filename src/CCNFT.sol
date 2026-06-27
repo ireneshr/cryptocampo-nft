@@ -50,13 +50,13 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     Counters.Counter private tokenIdTracker;
 
 // Mapeo del ID de un token (NFT) a un valor específico.
-    mapping(uint256 => uint256) public values;
+    mapping(uint256 => uint256) public tokenIdToValue;
 
 // Mapeo de un valor a un booleano para indicar si el valor es válido o no.
-    mapping(uint256 => bool) public validValues;
+    mapping(uint256 => bool) public valueIsValid; // Mapeo de un valor a un booleano para indicar si el valor es válido o no.
 
 // Mapeo del ID de un token (NFT) a su estado de venta (TokenSale).
-    mapping(uint256 => TokenSale) public tokensOnSale;
+    mapping(uint256 => TokenSale) public tokenIdToSaleInfo;
 
 // Lista que contiene los IDs de los NFTs que están actualmente en venta.
     uint256[] public listTokensOnSale;
@@ -98,7 +98,7 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 // Verificación de la cantidad de NFTs a comprar sea mayor que 0 y menor o igual al máximo permitido (maxBatchCount). Incluir un mensaje de falla.
         require(amount > 0 && amount <= maxBatchCount, "Invalid amount");
 
-        require(validValues[value], "Invalid NFT value"); // Verificación del valor especificado para los NFTs según los valores permitidos en validValues. Incluir un mensaje de falla.
+        require(valueIsValid[value], "Invalid NFT value"); // Verificación del valor especificado para los NFTs según los valores permitidos en valueIsValid. Incluir un mensaje de falla.
 
 // Verificación del valor total después de la compra (no debe exeder el valor máximo permitido "maxValueToRaise"). Incluir un mensaje de falla.
         require(totalValue + (value * amount) <= maxValueToRaise, "Purchase would exceed maximum value"); // Verificación del valor total después de la compra.
@@ -106,7 +106,7 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
         totalValue += value * amount; // Incremento del valor total acumulado por el valor de los NFTs comprados.
 
         for (uint256 i = 0; i < amount; i++) { // Bucle desde 1 hasta amount (inclusive) para mintear la cantidad especificada de NFTs.
-            values[tokenIdTracker.current()] = value; // Asignar el valor del NFT al tokenId actual "current()" en el mapeo values.
+            tokenIdToValue[tokenIdTracker.current()] = value; // Asignar el valor del NFT al tokenId actual "current()" en el mapeo tokenIdToValue.
             _safeMint(msg.sender, tokenIdTracker.current()); // Minteo de NFT y asignación al msg.sender.
             emit Buy(msg.sender, tokenIdTracker.current(), value); // Evento Buy con el comprador, el tokenId y el valor del NFT.
             tokenIdTracker.increment(); // Incremento del contador tokenIdTracker (NFT deben tener un tokenId único).
@@ -128,37 +128,36 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 // Funcion de "reclamo" de NFTs
 
 // Parámetros: Lista de IDs de tokens de reclamo (utilizar calldata).
-    function claim() external nonReentrant {
+    function claim(uint256[] calldata listTokenId) external nonReentrant {
 
-        require(); // Verificacón habilitación de "reclamo" (canClaim). Incluir un mensaje de falla.
+        require(canClaim, "Claiming is not enabled"); // Verificacón habilitación de "reclamo" (canClaim). Incluir un mensaje de falla.
 
-        require(); // Verificacón de la cantidad de tokens a reclamar (mayor que 0 y menor o igual a maxBatchCount). Incluir un mensaje de falla.
+        require(listTokenId.length > 0 && listTokenId.length <= maxBatchCount, "Invalid number of tokens to claim"); // Verificacón de la cantidad de tokens a reclamar (mayor que 0 y menor o igual a maxBatchCount). Incluir un mensaje de falla.
         uint256 claimValue = 0; // Inicializacion de claimValue a 0.
         TokenSale storage tokenSale; // Variable tokenSale.
-        for () { // Bucle para iterar a través de cada token ID en listTokenId.
-
-			require(); // Verificacón listTokenId[i] exista. Incluir un mensaje de falla.
+        for (uint256 i = 0; i < listTokenId.length; i++) { // Bucle para iterar a través de cada token ID en listTokenId.
+            uint256 tokenId = listTokenId[i];
+			require(_exists(tokenId), "Token does not exist"); // Verificación listTokenId[i] exista. Incluir un mensaje de falla.
 
 // Verificamos que el llamador de la función (_msgSender()) sea el propietario del token. Si no es así, la transacción falla con el mensaje "Only owner can Claim".
-            require(); // Verificacón que _msgSender()) sea el propietario del token. Incluir un mensaje de falla.
-            claimValue +=                ; // Suma de el valor del token al claimValue acumulado.
-                                         ; // Reseteo del valor del token a 0.
+            require(ownerOf(tokenId) == msg.sender, "Only owner can Claim"); // Verificacón que _msgSender()) sea el propietario del token. Incluir un mensaje de falla.
+            claimValue += tokenIdToValue[tokenId]; // Suma de el valor del token al claimValue acumulado.
+            tokenIdToValue[tokenId] = 0; // Reseteo del valor del token a 0.
 
- 
-            tokenSale = tokensOnSale[listTokenId[i]]; // Acceso a la información de venta del token
-            tokenSale.onSale =          ; // Desactivacion del estado de venta.
-            tokenSale.price =           ; // Desactivacion del estado de venta.
+            tokenSale = tokenIdToSaleInfo[tokenId]; // Acceso a la información de venta del token
+            tokenSale.onSale = false; // Desactivacion del estado de venta.
+            tokenSale.price = 0; // Desactivacion del estado de venta.
 
-            removeFromArray(); // Remover el token de la lista de tokens en venta.           
-            _burn(); // Quemar el token, eliminándolo permanentemente de la circulación.
-            emit Claim(); // Registrar el ID y propietario del token reclamado.
+            removeFromArray(listTokensOnSale, tokenId); // Remover el token de la lista de tokens en venta.           
+            _burn(tokenId); // Quemar el token, eliminándolo permanentemente de la circulación.
+            emit Claim(msg.sender, tokenId); // Registrar el ID y propietario del token reclamado.
         }
-                                        ; // Reducir el totalValue acumulado.
+        totalValue -= claimValue; // Reducir el totalValue acumulado.
 
 // Calculo del monto total a transferir (claimValue + (claimValue * profitToPay / 10000)).
 // Transferir los fondos desde fundsCollector al (_msgSender()).
-        if () {
-            revert("cannot send funds"); // Incluir un mensaje de falla.
+        if (!fundsToken.transferFrom(fundsCollector, _msgSender(), claimValue + (claimValue * profitToPay / 10000))) {
+                revert("cannot send funds"); // Incluir un mensaje de falla.
         }
     }   
 
@@ -286,19 +285,19 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     // ARRAYS
 
 // Verificar duplicados en el array antes de agregar un nuevo valor.
-    function addToArray(uint256[] storage _list, uint256 value) private { // Parámetro, array de enteros donde se añadirá el valor y valor que se añadirá al array.
+    function addToArray(uint256[] storage _list, uint256 id) private { // Parámetro, array de enteros donde se añadirá el valor y valor que se añadirá al array.
 
 // Posición del value en el array list usando la función find.
-        uint256 index = find(_list, value);
+        uint256 index = find(_list, id);
         if (index == _list.length) { // Si el valor no está en el array, push al final del array.
-            _list.push(value);
+            _list.push(id);
         }
     }
 
 // Eliminar un valor del array.
-    function removeFromArray(uint256[] storage _list, uint256 value) private { // Parámetros, array de enteros del cual se eliminará el valor y valor que se eliminara al array.
+    function removeFromArray(uint256[] storage _list, uint256 id) private { // Parámetros, array de enteros del cual se eliminará el valor y valor que se eliminara al array.
 // Posición del value en el array list usando la función find.
-        uint256 index = find(_list, value);
+        uint256 index = find(_list, id);
         if (index < _list.length) { // Si el valor está en el array, reemplazar el valor con el último valor en el array y despues reducir el tamaño del array.
             _list[index] = _list[_list.length];
             _list.pop();
@@ -306,10 +305,10 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
 
 // Buscar un valor en un array y retornar su índice o la longitud del array si no se encuentra.
-    function find(uint256[] storage _list, uint256 value) private pure returns(uint)  { // Parámetros, array de enteros en el cual se buscará el valor y valor que se buscará en el array..
+    function find(uint256[] storage _list, uint256 id) private pure returns(uint)  { // Parámetros, array de enteros en el cual se buscará el valor y valor que se buscará en el array..
 
         for (uint256 i = 0; i < _list.length; i++) { // Retornar la posición del valor en el array. 
-            if (_list[i] == value) {
+            if (_list[i] == id) {
                 return i;
             }
         }
