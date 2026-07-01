@@ -8,4 +8,3 @@ contract BUSD is ERC20 {
         _mint(msg.sender, 10000000 * 10 ** 18);
     }
 }
-ß

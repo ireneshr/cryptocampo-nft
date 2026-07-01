@@ -191,7 +191,7 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
         emit Trade(msg.sender, seller, tokenId, tokenSale.price); // Registro de dirección del comprador, dirección del vendedor, tokenId, y precio de venta.
 
-        _safeTransfer(seller, msg.sender, tokenId); // Transferencia del NFT del propietario actual al comprador.
+        _safeTransfer(seller, msg.sender, tokenId, ""); // Transferencia del NFT del propietario actual al comprador.
 
         tokenSale.onSale = false; // NFT no disponible para la venta.
         tokenSale.price = 0; // Reseteo del precio de venta del NFT.
@@ -200,21 +200,21 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
 
 // Función para poner en venta un NFT.
-    function putOnSale() external { // Parámetros: ID y precio del token.
-        require(); // Verificación de operaciones de comercio (canTrade). Incluir un mensaje de falla.
+    function putOnSale(uint256 tokenId, uint256 price) external { // Parámetros: ID y precio del token.
+        require(canTrade, "Trading is not enabled"); // Verificación de operaciones de comercio (canTrade). Incluir un mensaje de falla.
 
-        require(); // Verificción de existencia del tokenId mediante "_exists". Incluir un mensaje de falla.
+        require(_exists(tokenId), "Token does not exist"); // Verificción de existencia del tokenId mediante "_exists". Incluir un mensaje de falla.
 
-        require(); // Verificción remitente de la transacción es propietario del token. Incluir un mensaje de falla.
+        require(ownerOf(tokenId) == msg.sender, "Sender is not the owner"); // Verificción remitente de la transacción es propietario del token. Incluir un mensaje de falla.
 
 
-        TokenSale storage tokenSale = tokensOnSale[tokenId]; // Variable de almacenamiento de datos para el token.
+        TokenSale storage tokenSale = tokenIdToSaleInfo[tokenId]; // Variable de almacenamiento de datos para el token.
 
         tokenSale.onSale = true; // Indicar que el token está en venta.
-        tokenSale.price =                   ;              // Indicar precio de venta del token.
+        tokenSale.price = price; // Indicar precio de venta del token.
 
-        addToArray(); // Añadir token a la lista.
-        
+        addToArray(listTokensOnSale, tokenId); // Añadir token a la lista.
+
         emit PutOnSale(tokenId, price); // Notificar que el token ha sido puesto a la venta (token y precio).
     }
 
@@ -240,7 +240,7 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
 
 // Porcentaje de beneficio a pagar en las reclamaciones.
-    function setProfitToPay(uint16 _profitToPay) external onlyOwner { // Parámetro, porcentaje de beneficio a pagar.
+    function setProfitToPay(uint32 _profitToPay) external onlyOwner { // Parámetro, porcentaje de beneficio a pagar.
         profitToPay = _profitToPay; // Valor proporcionado a la variable profitToPay.
     }
 
@@ -267,11 +267,11 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 // Función para agregar un valor válido para NFTs.
 // ejemplo: podría agregar que 100, 500 y 1000 son valores válidos para los NFTs.   
     function addValidValues(uint256 value) external onlyOwner { // Parámetro, valor que se quiere agregar como válido.
-        validValues[value] = true; // Valor como válido en el mapeo validValues.
+        valueIsValid[value] = true; // Valor como válido en el mapeo validValues.
     }
 
 // Función para establecer la cantidad máxima de NFTs por operación.
-    function setMaxBatchCount(uint256 _maxBatchCount) external onlyOwner { // Parámetro, cantidad máxima de NFTs por operación.
+    function setMaxBatchCount(uint16 _maxBatchCount) external onlyOwner { // Parámetro, cantidad máxima de NFTs por operación.
         maxBatchCount = _maxBatchCount; // Valor proporcionado a la variable maxBatchCount.
     }
 
@@ -303,13 +303,13 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 // Posición del value en el array list usando la función find.
         uint256 index = find(_list, id);
         if (index < _list.length) { // Si el valor está en el array, reemplazar el valor con el último valor en el array y despues reducir el tamaño del array.
-            _list[index] = _list[_list.length];
+            _list[index] = _list[_list.length - 1];
             _list.pop();
         }
     }
 
 // Buscar un valor en un array y retornar su índice o la longitud del array si no se encuentra.
-    function find(uint256[] storage _list, uint256 id) private pure returns(uint)  { // Parámetros, array de enteros en el cual se buscará el valor y valor que se buscará en el array..
+    function find(uint256[] storage _list, uint256 id) private view returns(uint)  { // Parámetros, array de enteros en el cual se buscará el valor y valor que se buscará en el array..
 
         for (uint256 i = 0; i < _list.length; i++) { // Retornar la posición del valor en el array. 
             if (_list[i] == id) {
