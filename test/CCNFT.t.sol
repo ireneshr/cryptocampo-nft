@@ -120,25 +120,37 @@ contract CCNFTTest is Test {
 // Prueba de "setMaxBatchCount".
 // Verifica que el valor se haya establecido correctamente.
     function testSetMaxBatchCount() public {
+        ccnft.setMaxBatchCount(10);
+        assertEq(ccnft.maxBatchCount(), 10);
     }
 
 // Prueba de "setBuyFee".
 // Verificar que el valor se haya establecido correctamente.
     function testSetBuyFee() public {
+        ccnft.setBuyFee(100);
+        assertEq(ccnft.buyFee(), 100);
     }
 
 // Prueba de "setTradeFee".
 // Verificar que el valor se haya establecido correctamente.
     function testSetTradeFee() public {
+        ccnft.setTradeFee(100);
+        assertEq(ccnft.tradeFee(), 100);
     }
 
 // Prueba de que no se pueda comerciar cuando canTrade es false.
 // Verificar que se lance un error esperado.
     function testCannotTradeWhenCanTradeIsFalse() public {
+        ccnft.setCanTrade(false);
+        vm.expectRevert("Trading is not allowed");
+        ccnft.trade(1);
     }
 
 // Prueba que no se pueda comerciar con un token que no existe, incluso si canTrade es true. 
 // Verificar que se lance un error esperado.
     function testCannotTradeWhenTokenDoesNotExist() public {
+        uint256 nonExistentTokenId = 9999; // Token ID que no existe
+        vm.expectRevert("Token does not exist");
+        ccnft.trade(nonExistentTokenId);
     }
 }

@@ -166,7 +166,7 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 // Esta función la llama el comprador para comprar un NFT que otro usuario ha puesto a la venta. 
 // El comprador (msg.sender) paga el precio del NFT al vendedor (ownerOf(tokenId))
     function trade(uint256 tokenId) external nonReentrant { // Parámetro: ID del token.
-        require(canTrade, "Trading not allowed"); // Verificación del comercio de NFTs (canTrade). Incluir un mensaje de falla.
+        require(canTrade, "Trading is not allowed"); // Verificación del comercio de NFTs (canTrade). Incluir un mensaje de falla.
         require(_exists(tokenId), "Token does not exist"); // Verificación de existencia del tokenId (_exists). Incluir un mensaje de falla.
 // Verificamos que el comprador (el que llama a la función) no sea el propietario actual del NFT. Si lo es, la transacción falla con el mensaje "Buyer is the Seller".
         address seller = ownerOf(tokenId);
