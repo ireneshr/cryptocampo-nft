@@ -163,35 +163,39 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
 
 // Funcion de compra de NFT que esta en venta.
-    function trade() external nonReentrant { // Parámetro: ID del token.
-        require(); // Verificación del comercio de NFTs (canTrade). Incluir un mensaje de falla.
-        require(); // Verificación de existencia del tokenId (_exists). Incluir un mensaje de falla.
+// Esta función la llama el comprador para comprar un NFT que otro usuario ha puesto a la venta. 
+// El comprador (msg.sender) paga el precio del NFT al vendedor (ownerOf(tokenId))
+    function trade(uint256 tokenId) external nonReentrant { // Parámetro: ID del token.
+        require(canTrade, "Trading not allowed"); // Verificación del comercio de NFTs (canTrade). Incluir un mensaje de falla.
+        require(_exists(tokenId), "Token does not exist"); // Verificación de existencia del tokenId (_exists). Incluir un mensaje de falla.
 // Verificamos que el comprador (el que llama a la función) no sea el propietario actual del NFT. Si lo es, la transacción falla con el mensaje "Buyer is the Seller".
-        require(); // Verificación de propietario actual del NFT no sea el comprador. Incluir un mensaje de falla.
+        address seller = ownerOf(tokenId);
+        require(seller != msg.sender, "Buyer is the Seller"); // Verificación de propietario actual del NFT no sea el comprador. Incluir un mensaje de falla.
 
-        TokenSale storage tokenSale = tokensOnSale[tokenId]; // Estado de venta del NFT.
+        TokenSale storage tokenSale = tokenIdToSaleInfo[tokenId]; // Estado de venta del NFT.
 
 // Verifica que el NFT esté actualmente en venta (onSale es true). Si no lo está, la transacción falla con el mensaje "Token not On Sale".
         require(tokenSale.onSale, "Token not On Sale"); // Verificación del estado de venta (onSale). Incluir un mensaje de falla.
 
 // Transferencia del precio de venta del comprador al propietario actual del NFT usando fundsToken.
-        if (()) {
-            revert(); // Incluir un mensaje de falla.
+        if (!fundsToken.transferFrom(msg.sender, seller, tokenSale.price)) {
+            revert("Cannot send funds"); // Incluir un mensaje de falla.
         }
 
 // Transferencia de tarifa de comercio (calculada como un porcentaje del valor del NFT) del comprador al feesCollector.
-       if (()) {
-            revert(); // Incluir un mensaje de falla.
+
+// TODO: Esta bien el calculo de la tarifa? (tokenSale.price * tradeFee / 10000) ????
+       if (!fundsToken.transferFrom(msg.sender, feesCollector, tokenSale.price * tradeFee / 10000)) {
+            revert("Cannot send funds"); // Incluir un mensaje de falla.
         }
-  
-        emit Trade(); // Registro de dirección del comprador, dirección del vendedor, tokenId, y precio de venta.  
 
-        _safeTransfer(); // Transferencia del NFT del propietario actual al comprador.
+        emit Trade(msg.sender, seller, tokenId, tokenSale.price); // Registro de dirección del comprador, dirección del vendedor, tokenId, y precio de venta.
 
-        tokenSale.onSale =          ; // NFT no disponible para la venta.
-        tokenSale.price =           ; // Reseteo del precio de venta del NFT.
-        removeFromArray(); // Remover el tokenId de la lista listTokensOnSale de NFTs.
+        _safeTransfer(seller, msg.sender, tokenId); // Transferencia del NFT del propietario actual al comprador.
 
+        tokenSale.onSale = false; // NFT no disponible para la venta.
+        tokenSale.price = 0; // Reseteo del precio de venta del NFT.
+        removeFromArray(listTokensOnSale, tokenId); // Remover el tokenId de la lista listTokensOnSale de NFTs.
     }
 
 
@@ -206,7 +210,7 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
         TokenSale storage tokenSale = tokensOnSale[tokenId]; // Variable de almacenamiento de datos para el token.
 
-        tokenSale.onSale =                  ; // Indicar que el token está en venta.
+        tokenSale.onSale = true; // Indicar que el token está en venta.
         tokenSale.price =                   ;              // Indicar precio de venta del token.
 
         addToArray(); // Añadir token a la lista.
