@@ -312,7 +312,7 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     // Eliminar un valor del array.
     function removeFromArray(uint256[] storage _list, uint256 id) private {
         // Parámetros, array de enteros del cual se eliminará el valor y valor que se eliminara al array.
-    // Posición del value en el array list usando la función find.
+        // Posición del value en el array list usando la función find.
         uint256 index = find(_list, id);
         if (index < _list.length) {
             // Si el valor está en el array, reemplazar el valor con el último valor en el array y despues reducir el tamaño del array.
