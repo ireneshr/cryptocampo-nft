@@ -30,7 +30,7 @@ $ forge install OpenZeppelin/openzeppelin-contracts@v4.5.0 --no-commit
 
 ```shell
 ###  Opción posible: Utilizar remix para compilar el contrato BUSD. Una vez compilado, en la pestañña de Despliegue:
-$ Agregar direccion del contrato "BUSD" para poder interactuar con él: At Address "Direcciṕn del contrato BUSD"
+$ Agregar direccion del contrato "BUSD" para poder interactuar con él: At Address "Dirección del contrato BUSD"
 $ approve el contrato CCNFT: spender: "Dirección del contrato CCNFT"      value: 10000000000000000000000000 ( el total de _mint(msg.sender, 10000000 * 10 ** 18))
 ```
 
@@ -52,5 +52,8 @@ $ setFundsToken
 ## COMPARTIR EL ENLACE DE GITHUB QUE CONTIENE EL PROYECTO COMPLETO.
 
 BUSD address: 0xEB60037B80675c8046091EB07dB6224bDB4C5584
+https://sepolia.etherscan.io/address/0xEB60037B80675c8046091EB07dB6224bDB4C5584
+
 
 CCNFT address: 0x8c604C73B9B8379e19Acc0E36af0cAB81f631946
+https://sepolia.etherscan.io/address/0x8c604C73B9B8379e19Acc0E36af0cAB81f631946
