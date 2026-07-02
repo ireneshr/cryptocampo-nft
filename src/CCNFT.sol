@@ -134,8 +134,8 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
         require(listTokenId.length > 0 && listTokenId.length <= maxBatchCount, "Invalid number of tokens to claim"); // Verificacón de la cantidad de tokens a reclamar (mayor que 0 y menor o igual a maxBatchCount). Incluir un mensaje de falla.
         uint256 claimValue = 0; // Inicializacion de claimValue a 0.
         TokenSale storage tokenSale; // Variable tokenSale.
-        for (
-            uint256 i = 0; // Bucle para iterar a través de cada token ID en listTokenId. i < listTokenId.length; i++) {
+        // Bucle para iterar a través de cada token ID en listTokenId.
+        for (uint256 i = 0; i < listTokenId.length; i++) {
             uint256 tokenId = listTokenId[i];
             require(_exists(tokenId), "Token does not exist"); // Verificación listTokenId[i] exista. Incluir un mensaje de falla.
 
@@ -325,7 +325,8 @@ contract CCNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     function find(uint256[] storage _list, uint256 id) private view returns (uint256) {
         // Parámetros, array de enteros en el cual se buscará el valor y valor que se buscará en el array..
 
-        for (uint256 i = 0; // Retornar la posición del valor en el array. i < _list.length; i++) {
+        // Retornar la posición del valor en el array.
+        for (uint256 i = 0; i < _list.length; i++) {
             if (_list[i] == id) {
                 return i;
             }
