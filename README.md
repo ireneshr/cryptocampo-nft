@@ -57,3 +57,5 @@ https://sepolia.etherscan.io/address/0xEB60037B80675c8046091EB07dB6224bDB4C5584
 
 CCNFT address: 0x8c604C73B9B8379e19Acc0E36af0cAB81f631946
 https://sepolia.etherscan.io/address/0x8c604C73B9B8379e19Acc0E36af0cAB81f631946
+
+Las capturas de pantalla están en la carpeta "screenshots"
